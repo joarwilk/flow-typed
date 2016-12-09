@@ -9,19 +9,19 @@ interface rxjs$IObserver<-T> {
 
 type rxjs$PartialObserver<-T> =
   | {
-    next: (value: T) => mixed;
-    error?: (error: any) => mixed;
-    complete?: () => mixed;
+    +next: (value: T) => mixed;
+    +error?: (error: any) => mixed;
+    +complete?: () => mixed;
   }
   | {
-    next?: (value: T) => mixed;
-    error: (error: any) => mixed;
-    complete?: () => mixed;
+    +next?: (value: T) => mixed;
+    +error: (error: any) => mixed;
+    +complete?: () => mixed;
   }
   | {
-    next?: (value: T) => mixed;
-    error?: (error: any) => mixed;
-    complete: () => mixed;
+    +next?: (value: T) => mixed;
+    +error?: (error: any) => mixed;
+    +complete: () => mixed;
   }
 
 interface rxjs$ISubscription {
@@ -102,11 +102,9 @@ declare class rxjs$Observable<+T> {
 
   buffer(bufferBoundaries: rxjs$Observable<any>): rxjs$Observable<Array<T>>;
 
-  cache(bufferSize?: number, windowTime?: number): rxjs$Observable<T>;
-
   catch<U>(selector: (err: any, caught: rxjs$Observable<T>) => rxjs$Observable<U>): rxjs$Observable<U>;
 
-  concat(...sources: rxjs$Observable<T>[]): rxjs$Observable<T>;
+  concat<U>(...sources: rxjs$Observable<U>[]): rxjs$Observable<T | U>;
 
   concatAll<U>(): rxjs$Observable<U>;
 
@@ -119,6 +117,10 @@ declare class rxjs$Observable<+T> {
   delay(dueTime: number): rxjs$Observable<T>;
 
   distinctUntilChanged(compare?: (x: T, y: T) => boolean): rxjs$Observable<T>;
+
+  distinct<U>(keySelector?: (value: T) => U, flushes?: rxjs$Observable<mixed>): rxjs$Observable<T>;
+
+  distinctUntilKeyChanged(key: string, compare?: (x: mixed, y: mixed) => boolean): rxjs$Observable<T>;
 
   elementAt(index: number, defaultValue?: T): rxjs$Observable<T>;
 
@@ -161,6 +163,10 @@ declare class rxjs$Observable<+T> {
 
   switchMap<U>(
     project: (value: T) => rxjs$Observable<U> | Promise<U> | Iterable<U>
+  ): rxjs$Observable<U>;
+
+  switchMapTo<U>(
+    innerObservable: rxjs$Observable<U>,
   ): rxjs$Observable<U>;
 
   map<U>(f: (value: T) => U): rxjs$Observable<U>;
@@ -485,12 +491,14 @@ declare class rxjs$Observable<+T> {
   static forkJoin<A, B>(
     a: rxjs$Observable<A>,
     b: rxjs$Observable<B>,
+    _: void,
   ): rxjs$Observable<[A, B]>;
 
   static forkJoin<A, B, C>(
     a: rxjs$Observable<A>,
     b: rxjs$Observable<B>,
     c: rxjs$Observable<C>,
+    _: void,
   ): rxjs$Observable<[A, B, C]>;
 
   static forkJoin<A, B, C, D>(
@@ -498,6 +506,7 @@ declare class rxjs$Observable<+T> {
     b: rxjs$Observable<B>,
     c: rxjs$Observable<C>,
     d: rxjs$Observable<D>,
+    _: void,
   ): rxjs$Observable<[A, B, C, D]>;
 
   static forkJoin<A, B, C, D, E>(
@@ -506,6 +515,7 @@ declare class rxjs$Observable<+T> {
     c: rxjs$Observable<C>,
     d: rxjs$Observable<D>,
     e: rxjs$Observable<E>,
+    _: void,
   ): rxjs$Observable<[A, B, C, D, E]>;
 
   static forkJoin<A, B, C, D, E, F>(
@@ -515,6 +525,7 @@ declare class rxjs$Observable<+T> {
     d: rxjs$Observable<D>,
     e: rxjs$Observable<E>,
     f: rxjs$Observable<F>,
+    _: void,
   ): rxjs$Observable<[A, B, C, D, E, F]>;
 
   static forkJoin<A, B, C, D, E, F, G>(
@@ -525,6 +536,7 @@ declare class rxjs$Observable<+T> {
     e: rxjs$Observable<E>,
     f: rxjs$Observable<F>,
     g: rxjs$Observable<G>,
+    _: void,
   ): rxjs$Observable<[A, B, C, D, E, F, G]>;
 
   static forkJoin<A, B, C, D, E, F, G, H>(
@@ -536,6 +548,7 @@ declare class rxjs$Observable<+T> {
     f: rxjs$Observable<F>,
     g: rxjs$Observable<G>,
     h: rxjs$Observable<H>,
+    _: void,
   ): rxjs$Observable<[A, B, C, D, E, F, G, H]>;
 
   withLatestFrom<A>(
@@ -597,6 +610,11 @@ declare class rxjs$Observable<+T> {
     g: rxjs$Observable<G>,
     resultSelector: (a: A, b: B, c: C, d: D, e: E, f: F, g: G) => H,
   ): rxjs$Observable<H>;
+
+  static using<R: rxjs$ISubscription>(
+    resourceFactory: () => ?R,
+    observableFactory: (resource: R) => rxjs$Observable<T> | Promise<T> | void,
+  ): rxjs$Observable<T>;
 }
 
 declare class rxjs$ConnectableObservable<T> extends rxjs$Observable<T> {
@@ -605,14 +623,6 @@ declare class rxjs$ConnectableObservable<T> extends rxjs$Observable<T> {
 }
 
 declare class rxjs$Observer<T> {
-  static create(
-    onNext?: (value: T) => mixed,
-    onError?: (error: any) => mixed,
-    onCompleted?: () => mixed,
-  ): rxjs$Observer<T>;
-
-  asrxjs$Observer(): rxjs$Observer<T>;
-
   next(value: T): mixed;
 
   error(error: any): mixed;
@@ -662,7 +672,6 @@ declare module 'rxjs' {
   declare module.exports: {
     Observable: typeof rxjs$Observable,
     ConnectableObservable: typeof rxjs$ConnectableObservable,
-    Observer: typeof rxjs$Observer,
     Subject: typeof rxjs$Subject,
     BehaviorSubject: typeof rxjs$BehaviorSubject,
     ReplaySubject: typeof rxjs$ReplaySubject,
